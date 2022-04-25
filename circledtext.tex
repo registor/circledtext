@@ -1,0 +1,749 @@
+\documentclass[full]{l3doc}
+\usepackage[scheme=plain]{ctex}
+\usepackage{enumitem}
+\usepackage{indentfirst}
+\usepackage{titling}
+\usepackage{geometry}
+\usepackage{fancyvrb-ex}
+\usepackage{circledtext}
+
+\IndexPrologue
+  {
+    \section*{Index}
+    \markboth{Index}{Index}
+    \addcontentsline{toc}{section}{Index}
+    The~italic~numbers~denote~the~pages~where~the~
+    corresponding~entry~is~described,~
+    numbers~underlined~point~to~the~definition,~
+    all~others~indicate~the~places~where~it~is~used.
+  }
+
+\newcommand\tikzmark[1]{\tikz \coordinate[overlay, remember picture] (#1);}
+
+\geometry{
+  left=4.5cm,
+  right=2cm,
+  top=2cm,
+  bottom=2cm,
+}
+\hypersetup {
+  CJKbookmarks,
+  bookmarksopen,
+  bookmarksopenlevel=3,
+  pdfstartview=FitH,
+  pdfinfo = {
+   Title = The package circledtext ,
+   Subject = A LaTeX3 package ,
+   Author = Geng Nan
+ }
+}
+
+\DoNotIndex{\begin, \end}
+\setlength{\parskip}{\medskipamount}
+\DeclareDocumentEnvironment { noteen } { +b } {
+  \par\textbf{\textsf{NOTE:~}}#1\par
+} {}
+\DeclareDocumentEnvironment { notezh } { +b } {
+  \par\textbf{\textsf{注意:~}}#1\par
+} {}
+
+\AtEndDocument{
+  \newgeometry{
+    left=2cm,
+    right=2cm,
+    top=2cm,
+    bottom=2cm
+  }
+  \PrintIndex
+}
+
+\ExplSyntaxOn
+\dim_new:N \l__my_syntax_dim
+\box_new:N \g__my_syntax_box
+\NewDocumentEnvironment { Syntax } { s }
+  {
+    \dim_set:Nn \l__my_syntax_dim
+      { \textwidth }
+    \hbox_gset:Nw \g__my_syntax_box
+      \small \ttfamily
+      \begin{minipage}[t]{\l__my_syntax_dim}
+        \raggedright\obeyspaces\obeylines
+  }
+  {
+      \end{minipage}
+    \hbox_gset_end:
+    \IfValueF { #1 } { \smallskip }
+    \box_use_drop:N \g__my_syntax_box
+    \smallskip
+  }
+
+\DeclareDocumentEnvironment { Description } { o +b } {
+  \hbox_set:Nn \l_tmpa_box { #1 }
+  \dim_set:Nn \l_tmpa_dim { \box_wd:N \l_tmpa_box }
+  \begin{itemize}[labelwidth=\l_tmpa_dim, align=left]
+    #2
+  \end{itemize}
+} {  }
+
+\keys_define:nn { circled/doc } {
+  opt .tl_set:N = \l_opt_tl,
+  desc .tl_set:N = \l_desc_tl,
+  init .tl_set:N = \l_init_tl,
+  init .initial:n = init-none,
+}
+
+\box_new:N \l__option_box
+\NewDocumentEnvironment { option } { m +b } {
+  \keys_set:nn { circled/doc } { #1 }
+  \hbox_set:Nw \l__option_box
+    \small \ttfamily
+    \begin{minipage}[t]{\textwidth}
+      \obeyspaces\obeylines
+      \textcolor{red}{
+        \l_opt_tl
+        \exp_args:Nx\SpecialOptionIndex{\l_opt_tl}
+      }
+      {~}\l_desc_tl
+      \hfill(
+      \tl_if_eq:NnTF \l_init_tl { init-none } { no~value }
+        { initially~\texttt{\l_init_tl} }
+      )
+    \end{minipage}
+  \hbox_gset_end:
+  \box_use_drop:N \l__option_box
+  #2
+  \medskip
+} {  }
+
+\DeclareDocumentCommand \opt { O{} m }
+  { \__codedoc_cmd:no {#1} { #2 } }
+\ExplSyntaxOff
+
+\def\vers{\texttt{v1.0.0} }
+
+\begin{document}
+\title{
+  \circledtext[charf=\LARGE]{带}\circledtext[charf=\LARGE]{圈}%
+  文字排版\\\pkg{circledtext} 宏包
+  \rlap{\makebox[4cm][r]{
+    \normalsize $\Longrightarrow$ \color{red}
+    \protect\hyperlink{en}{English Version}
+    \protect\hypertarget{zh}{}
+  }}
+}
+\author{\textit{耿楠} \texttt{<nangeng@nwafu.edu.cn>}}
+\date{\the\year 年\the\month 月\the\day 日\qquad \vers
+\thanks{\url{https://github.com/registor/circledtext}}
+\thanks{\url{https://gitee.com/nwafu_nan/circledtext}}
+}
+\maketitle
+
+{\small
+\tableofcontents
+}
+\newpage
+
+\begin{documentation}
+
+\section{引言}
+
+\pkg{circledtext}是一个基于\pkg{l3draw}用\pkg{expl3}开发的
+排版带圈文字的宏包，它提供了唯一的一个排版命令\tn{circledtext}%
+用于对其必选参数中的字符(串)按指定的基字符大小缩放后，再为其添加
+圆形边框，然后排版输出。其带星号``*''命令\tn{circledtext*}用于
+实现反色阴文排版输出。可以通过该命令的命令选项或\tn{circledtextset}%
+命令设置排版输出的不同外观。
+
+\section{用户接口}
+
+\subsection{\cs{circledtext}排版命令}
+
+\begin{function}{\circledtext}
+  \begin{syntax}
+    \cs{circledtext} \oarg{外观选项} \marg{字符(串)}
+  \end{syntax}
+\end{function}
+
+  按设置的\oarg{外观选项}对指定的\marg{字符(串)}添加圆圈后排版输出。
+
+  该命令仅有一个必选参数\marg{字符(串)}，用于指定需要排版的文本。
+
+  在\oarg{外观选项}中可以通过key-value的方式设置颜色、字体、字号、线宽等外观。
+
+  外观也可以通过\cs{circledtextset}命令，以逗号分隔key-value列表进行设置。
+
+  通过\oarg{外观选项}设置的外观参数仅对当前命令局部有效，
+  通过\cs{circledtextset}命令设置的外观参数对后续所有命令有效。
+
+  其星号版本命令用于反色阴文输出。
+
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtext{五}\quad
+  \circledtext{888}\quad
+  \circledtext*{五}\quad
+  \circledtext*{888}
+\end{SideBySideExample}
+
+\subsection{\cs{circledtextset}外观选项设置命令}
+
+\begin{function}{\circledtextset}
+  \begin{syntax}
+    \cs{circledtextset} \marg{外观选项}
+  \end{syntax}
+\end{function}
+
+  用于设置一个外围圆圈及字符(串)的外观。
+
+  在\marg{外观选项}中可以通过key-value方式设置颜色、
+  字体、字号、线宽等外观。
+
+  通过\cs{circledtextset}命令设置的外观参数对后续所有命令有效。
+
+\section{外观选项}
+
+\begin{option}{ opt = basechar, desc = {= \meta{基字符}}, init=好/x }
+  设置尺寸测度基字符，如果使用|xetex|或|luatex|引擎编译
+  则初始值为中文“好”字，否则使用英文``x''。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtext{五}\quad
+  \circledtext{一佰}\quad
+  \circledtext[basechar=m]{999}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = charf, desc = {= \meta{格式命令}}, init=\tn{normalsize} }
+  设置字符(串)格式，初始值为\tn{normalsize}。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtext{五}\qquad
+  \circledtext[charf=\Huge\sffamily]{九}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = boxtype, desc = {= \meta{外框类型}}, init=o }
+  设置外框类型，目前支持：
+\end{option}\\
+  \begin{Description}
+    \item |o|---实心填充圆(小写英文字母``o'')。
+    \item |o+|---十字填充圆。
+    \item |ox|---对角十字填充圆(小写英文字母``x'')。
+    \item |ox+|---米字填充圆。
+    \item |x+|---米字填充背景。
+    \item |O|---实心填充正方形(大写英文字母``O'')。
+    \item |O+|---十字填充正方形。
+    \item |OX|---对角十字填充正方形(小写英文字母``X'')。
+    \item |OX+|---米字填充正方形。
+    \item |X+|---米字填充背景。
+  \end{Description}
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
+  \centering
+  \circledtext[boxtype=o  ]{甲}\quad
+  \circledtext[boxtype=o+ ]{乙}\quad
+  \circledtext[boxtype=ox ]{丙}\quad
+  \circledtext[boxtype=ox+]{丁}\quad
+  \circledtext[boxtype=x+ ]{戊}
+\end{SideBySideExample}
+
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
+  \centering
+  \circledtext[boxtype=O  ]{甲}\quad
+  \circledtext[boxtype=O+ ]{乙}\quad
+  \circledtext[boxtype=OX ]{丙}\quad
+  \circledtext[boxtype=OX+]{丁}\quad
+  \circledtext[boxtype=X+ ]{戊}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = resize, desc = {= \meta{缩放方式}}, init=none }
+  设置缩放类型，目前支持：
+\end{option}\\
+\begin{Description}
+  \item |none|---无缩放。
+  \item |real|---使用字符实际宽高缩放。
+  \item |base|---使用基字符缩放。
+\end{Description}
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{width=2cm}
+  \circledtext[resize=none]{10}\quad
+  \circledtext[resize=real]{15}\quad
+  \circledtext[resize=base]{20}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = xscale, desc = {= \meta{x方向缩放系数}}, init=1 }
+  设置x方向缩放系数。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{resize=real}
+  \circledtext[xscale=0.5]{15}\quad
+  \circledtext[xscale=1.0]{15}\quad
+  \circledtext[xscale=1.5]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = yscale, desc = {= \meta{y方向缩放系数}}, init=1 }
+  设置y方向缩放系数。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{resize=real}
+  \circledtext[yscale=0.5]{15}\quad
+  \circledtext[yscale=1.0]{15}\quad
+  \circledtext[yscale=1.5]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = width, desc = {= \meta{宽度}}, init=无 }
+  设置宽度。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{resize=real}
+  \circledtext[width=0.5em]{15}\quad
+  \circledtext[width=1.0em]{15}\quad
+  \circledtext[width=1.5em]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = height, desc = {= \meta{高度}}, init=无 }
+  设置高度。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{resize=real}
+  \circledtext[height=1.0ex]{15}\quad
+  \circledtext[height=2.0ex]{15}\quad
+  \circledtext[height=3.0ex]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = boxlinewidth, desc = {= \meta{边框线宽}}, init=0.4pt }
+  设置边框线宽。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.44\linewidth,gobble=2]
+  \centering
+  \circledtext{100}\quad
+  \circledtext[boxlinewidth=1.0pt]{1000}\quad
+  \circledtext[boxlinewidth=2.0pt]{一佰三十}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = crosslinewidth, desc = {= \meta{背景线线宽}}, init=0.3pt }
+  设置背景线线宽。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.44\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=o+}
+  \circledtext{三}\quad
+  \circledtext[crosslinewidth=1.0pt]{三}\quad
+  \circledtext[crosslinewidth=2.0pt]{三}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = crosscolorratio, desc = {= \meta{背景线颜色比例}}, init=30 }
+  设置背景线颜色点边框颜色的比例(\%)。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.38\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,crosslinewidth=2pt}
+  \circledtext[crosscolorratio=10]{15}\quad
+  \circledtext[crosscolorratio=80]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = boxcolor, desc = {= \meta{边框颜色}}, init=black }
+  设置边框颜色。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+}
+  \circledtext{15}\quad
+  \circledtext[boxcolor=red]{15}\quad
+  \circledtext[boxcolor=blue]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = charcolor, desc = {= \meta{字符(串)颜色}}, init=black }
+  设置字符(串)颜色。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,boxcolor=red}
+  \circledtext{15}\quad
+  \circledtext[charcolor=red]{15}\quad
+  \circledtext[charcolor=blue]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = boxfill, desc = {= \meta{背景颜色}}, init=无 }
+  设置背景填充颜色。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,boxcolor=red}
+  \circledtext{15}\quad
+  \circledtext[boxfill=red!30]{15}\quad
+  \circledtext[boxfill=blue!30]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = charstroke, desc = {= \meta{笔画类型}}, init=无 }
+  设置字符(串)笔画类型。
+\end{option}\\
+\begin{Description}
+  \item |none|---原始笔画轮廓。
+  \item |solid|---实线笔画轮廓。
+  \item |dashed|---虚线笔画轮廓。
+  \item |invisible|---隐藏笔画轮廓。
+\end{Description}
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,boxcolor=red,
+            charf=\sffamily\bfseries\Huge}
+  \circledtext{五}\quad
+  \circledtext[charstroke=solid]{五}\quad
+  \circledtext[charstroke=dashed]{五}\quad
+  \circledtext[charstroke=invisible]{五}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = dashpattern, desc = {= \meta{背景线线型}}, init=无 }
+  设置背景线线型。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.25\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,boxcolor=red,
+          charstroke=invisible,charf=\Huge}
+  \circledtext{五}\quad
+  \circledtext[dashpattern={1.5mm,1mm,2mm,1.5mm}]{五}
+\end{SideBySideExample}
+
+\title{
+  \circledtext{C}ircled\circledtext{T}ext Package \pkg{circledtext}
+  \rlap{\makebox[4cm][r]{
+    \normalsize $\Longrightarrow$ \color{red}
+    \protect\hyperlink{zh}{中文版本}
+    \protect\hypertarget{en}{}
+  }}
+}
+\author{Nan Geng \texttt{<nangeng@nwafu.edu.cn>}}
+\date{\today\qquad \vers}
+\maketitle
+
+\section{Introduction}
+
+\pkg{circledtext} is a text with circle package based on%
+\pkg{l3draw} by \pkg{expl3}. This package provides a macro
+\tn{circledtext} to create arbitrary ``circled'' text. The 
+starred macro can create negative ``circled'' text.
+a macro \tn{circledtextset} to set the format of ``circled''
+text.
+
+\section{Inerface}
+
+\subsection{\cs{circledtext} macro}
+
+\begin{function}{\circledtext}
+  \begin{syntax}
+    \cs{circledtext} \oarg{options} \marg{text}
+  \end{syntax}
+\end{function}
+
+  According to \oarg{options} to create ``circled''
+  \marg{text}.
+
+  \oarg{options} are key-value for color, font, size and so on.。
+
+  Macro's \oarg{options} are local setting.
+
+  If global settings are needed, the \cs{circledtextset} macro is required.
+
+  The starred version can create negative ``circled'' text.
+
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtext{8}\quad
+  \circledtext{888}\quad
+  \circledtext*{8}\quad
+  \circledtext*{888}
+\end{SideBySideExample}
+\subsection{\cs{circledtextset} macro}
+
+\begin{function}{\circledtextset}
+  \begin{syntax}
+    \cs{circledtextset} \marg{options}
+  \end{syntax}
+\end{function}
+
+  Used to set the appearance of ``circled'' text.
+
+  In \marg{options} you can set the appearance of the 
+  color, font, size, linewidth, etc. by key-value lists.
+
+  The appearance seted by the \cs{circledtextset} are 
+  valid for all subsequent macros.
+
+\section{options}
+
+\begin{option}{ opt = basechar, desc = {= \meta{base char}}, init=好/x }
+  Set size measurement base character. If compiled with xetex or luatex engine,
+  the initial value is ``好'' in Chinese, otherwise the initial value is the 
+  letter ``x'' in English.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtext{8}\quad
+  \circledtext{100}\quad
+  \circledtext[basechar=m]{three}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = charf, desc = {= \meta{format macro(s)}}, init=\tn{normalsize} }
+  Set text formats.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtext{8}\qquad
+  \circledtext[charf=\Huge\sffamily]{9}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = boxtype, desc = {= \meta{box type}}, init=o }
+  Set box type, currently as follows:
+\end{option}\\
+  \begin{Description}
+    \item |o|---filled circle(lowercase "o").
+    \item |o+|---filled circle with cross.
+    \item |ox|---filled circle with diagonal cross(lowercase "x").
+    \item |ox+|---filled circle with diagonal cross and cross.
+    \item |x+|---diagonal cross and cross.
+    \item |O|---filled circle(capital "O").
+    \item |O+|---filled circle with cross.
+    \item |OX|---filled circle with diagonal cross(capital "X").
+    \item |OX+|---filled circle with diagonal cross and cross.
+    \item |X+|---diagonal cross and cross.
+  \end{Description}
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
+  \centering
+  \circledtext[boxtype=o  ]{10}\quad
+  \circledtext[boxtype=o+ ]{11}\quad
+  \circledtext[boxtype=ox ]{12}\quad
+  \circledtext[boxtype=ox+]{13}\quad
+  \circledtext[boxtype=x+ ]{14}
+\end{SideBySideExample}
+
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
+  \centering
+  \circledtext[boxtype=O  ]{10}\quad
+  \circledtext[boxtype=O+ ]{11}\quad
+  \circledtext[boxtype=OX ]{12}\quad
+  \circledtext[boxtype=OX+]{13}\quad
+  \circledtext[boxtype=X+ ]{14}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = resize, desc = {= \meta{resize type}}, init=none }
+  Set resize type, currently as follows:
+\end{option}\\
+\begin{Description}
+  \item |none|---No scaling.
+  \item |real|---Scaling with real size or ratio.
+  \item |base|---Scaling with base size.
+\end{Description}
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{width=2cm}
+  \circledtext[resize=none]{10}\quad
+  \circledtext[resize=real]{15}\quad
+  \circledtext[resize=base]{20}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = xscale, desc = {= \meta{x factor}}, init=1 }
+  Set x-direction scaling factor.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{resize=real}
+  \circledtext[xscale=0.5]{15}\quad
+  \circledtext[xscale=1.0]{15}\quad
+  \circledtext[xscale=1.5]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = yscale, desc = {= \meta{y factor}}, init=1 }
+  Set y-direction scaling factor.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{resize=real}
+  \circledtext[yscale=0.5]{15}\quad
+  \circledtext[yscale=1.0]{15}\quad
+  \circledtext[yscale=1.5]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = width, desc = {= \meta{width}}, init=null }
+  Set width.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{resize=real}
+  \circledtext[width=0.5em]{15}\quad
+  \circledtext[width=1.0em]{15}\quad
+  \circledtext[width=1.5em]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = height, desc = {= \meta{height}}, init=null }
+  Set height.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{resize=real}
+  \circledtext[height=1.0ex]{15}\quad
+  \circledtext[height=2.0ex]{15}\quad
+  \circledtext[height=3.0ex]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = boxlinewidth, desc = {= \meta{line width}}, init=0.4pt }
+  Set box line width.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.44\linewidth,gobble=2]
+  \centering
+  \circledtext{100}\quad
+  \circledtext[boxlinewidth=1.0pt]{1000}\quad
+  \circledtext[boxlinewidth=2.0pt]{one}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = crosslinewidth, desc = {= \meta{cross width}}, init=0.3pt }
+  Set cross line width.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.44\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=o+}
+  \circledtext{8}\quad
+  \circledtext[crosslinewidth=1.0pt]{8}\quad
+  \circledtext[crosslinewidth=2.0pt]{8}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = crosscolorratio, desc = {= \meta{bg}}, init=30 }
+  Set the ratio of the cross line color to box color(\%).
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.38\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,crosslinewidth=2pt}
+  \circledtext[crosscolorratio=10]{15}\quad
+  \circledtext[crosscolorratio=80]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = boxcolor, desc = {= \meta{box color}}, init=black }
+  Set box color.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+}
+  \circledtext{15}\quad
+  \circledtext[boxcolor=red]{15}\quad
+  \circledtext[boxcolor=blue]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = charcolor, desc = {= \meta{text color}}, init=black }
+  Set text color.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,boxcolor=red}
+  \circledtext{15}\quad
+  \circledtext[charcolor=red]{15}\quad
+  \circledtext[charcolor=blue]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = boxfill, desc = {= \meta{fill color}}, init=null }
+  Set fill color.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,boxcolor=red}
+  \circledtext{15}\quad
+  \circledtext[boxfill=red!30]{15}\quad
+  \circledtext[boxfill=blue!30]{15}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = charstroke, desc = {= \meta{stroke}}, init=none }
+  Set character stroke type.
+\end{option}\\
+\begin{Description}
+  \item |none|---Original stroke.
+  \item |solid|---Solid stroke.
+  \item |dashed|---dashed stroke.
+  \item |invisible|---Hide stroke.
+\end{Description}
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,boxcolor=red,
+            charf=\sffamily\bfseries\Huge}
+  \circledtext{8}\quad
+  \circledtext[charstroke=solid]{8}\quad
+  \circledtext[charstroke=dashed]{8}\quad
+  \circledtext[charstroke=invisible]{8}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = dashpattern, desc = {= \meta{cross style}}, init=null }
+  Set cross style.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.25\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxtype=ox+,boxcolor=red,
+          charstroke=invisible,charf=\Huge}
+  \circledtext{8}\quad
+  \circledtext[dashpattern={1.5mm,1mm,2mm,1.5mm}]{8}
+\end{SideBySideExample}
+
+\end{documentation}
+
+\end{document}

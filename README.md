@@ -54,8 +54,7 @@ Copyright and Licence
 
     The Current Maintainer of this work is Nan Geng.
 
-    This package consists of the file  circledtext.dtx,
-                 and the derived files circledtext.sty,
-                                       circledtext.pdf,
-                                       README.md (this file).
+    This package consists of circledtext.sty, circledtext.tex and README.md(this file),
+                 and the derived files circledtext.pdf.
+                                       
 

@@ -119,7 +119,7 @@
   { \__codedoc_cmd:no {#1} { #2 } }
 \ExplSyntaxOff
 
-\def\vers{\texttt{v1.0.0} }
+\def\vers{\texttt{v1.1.0} }
 
 \begin{document}
 \title{
@@ -149,7 +149,7 @@
 
 \pkg{circledtext}是一个基于\pkg{l3draw}用\pkg{expl3}开发的
 排版带圈文字的宏包，它提供了唯一的一个排版命令\tn{circledtext}%
-用于对其必选参数中的字符(串)按指定的基字符大小缩放后，再为其添加
+用于对其必选参数中的文本按指定的基字符大小缩放后，再为其添加
 圆形边框，然后排版输出。其带星号``*''命令\tn{circledtext*}用于
 实现反色阴文排版输出。可以通过该命令的命令选项或\tn{circledtextset}%
 命令设置排版输出的不同外观。
@@ -160,13 +160,13 @@
 
 \begin{function}{\circledtext}
   \begin{syntax}
-    \cs{circledtext} \oarg{外观选项} \marg{字符(串)}
+    \cs{circledtext} \oarg{外观选项} \marg{文本}
   \end{syntax}
 \end{function}
 
-  按设置的\oarg{外观选项}对指定的\marg{字符(串)}添加圆圈后排版输出。
+  按设置的\oarg{外观选项}对指定的\marg{文本}添加圆圈后排版输出。
 
-  该命令仅有一个必选参数\marg{字符(串)}，用于指定需要排版的文本。
+  该命令仅有一个必选参数\marg{文本}，用于指定需要排版的文本。
 
   在\oarg{外观选项}中可以通过key-value的方式设置颜色、字体、字号、线宽等外观。
 
@@ -193,7 +193,7 @@
   \end{syntax}
 \end{function}
 
-  用于设置一个外围圆圈及字符(串)的外观。
+  用于设置外围圆圈及文本的外观。
 
   在\marg{外观选项}中可以通过key-value方式设置颜色、
   字体、字号、线宽等外观。
@@ -204,42 +204,46 @@
 
 \begin{option}{ opt = basechar, desc = {= \meta{基字符}}, init=好/x }
   设置尺寸测度基字符，如果使用|xetex|或|luatex|引擎编译
-  则初始值为中文“好”字，否则使用英文``x''。
+  则初始值为中文“好”字，否则使用英文字母``x''。
 \end{option}\\
 \begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
   \centering
   \circledtext{五}\quad
   \circledtext{一佰}\quad
-  \circledtext[basechar=m]{999}
+  \circledtext[basechar=M]{999}
 \end{SideBySideExample}
 
 \bigskip
 
 \begin{option}{ opt = charf, desc = {= \meta{格式命令}}, init=\tn{normalsize} }
-  设置字符(串)格式，初始值为\tn{normalsize}。
+  设置文本格式，初始值为\tn{normalsize}。
 \end{option}\\
 \begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
   \centering
   \circledtext{五}\qquad
-  \circledtext[charf=\Huge\sffamily]{九}
+  \circledtext[charf=\Huge]{九}
 \end{SideBySideExample}
 
+% 字体设置会影响后续内容，原因还未查明
 \bigskip
 
 \begin{option}{ opt = boxtype, desc = {= \meta{外框类型}}, init=o }
   设置外框类型，目前支持：
 \end{option}\\
   \begin{Description}
-    \item |o|---实心填充圆(小写英文字母``o'')。
+    \item |o|---实心填充圆(小写英文字母``|o|'')。
     \item |o+|---十字填充圆。
-    \item |ox|---对角十字填充圆(小写英文字母``x'')。
+    \item |ox|---对角十字填充圆(小写英文字母``|x|'')。
     \item |ox+|---米字填充圆。
-    \item |x+|---米字填充背景。
-    \item |O|---实心填充正方形(大写英文字母``O'')。
+    \item |x+|---米字背景(边框为圆但不显示)。
+    \item |O|---实心填充正方形(大写英文字母``|O|'')。
     \item |O+|---十字填充正方形。
-    \item |OX|---对角十字填充正方形(小写英文字母``X'')。
+    \item |OX|---对角十字填充正方形(小写英文字母``|X|'')。
     \item |OX+|---米字填充正方形。
-    \item |X+|---米字填充背景。
+    \item |X+|---米字背景(边框为正方形但不显示)。
+    \item |oo|---同心圆背景。
+    \item |Oo|---前景色填充正方叠加背景色圆背景。
+    \item |OO|---同心正方形背景。
   \end{Description}
 \begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
   \centering
@@ -257,6 +261,30 @@
   \circledtext[boxtype=OX ]{丙}\quad
   \circledtext[boxtype=OX+]{丁}\quad
   \circledtext[boxtype=X+ ]{戊}
+\end{SideBySideExample}
+
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxcolor=red}
+  \circledtext[boxtype=oo  ]{车}\quad
+  \circledtext[boxtype=Oo  ]{马}\quad
+  \circledtext[boxtype=OO  ]{炮}\quad
+  \circledtext*[boxtype=oo ]{车}\quad
+  \circledtext*[boxtype=Oo ]{马}\quad
+  \circledtext*[boxtype=OO ]{炮}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = charshrink, desc = {= \meta{文本缩放系数}}, init=0.75 }
+  设置文本缩放系数。
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtext[charshrink=0.75]{甲}\quad
+  \circledtext[charshrink=1.00]{乙}\quad
+  \circledtext[charshrink=0.50]{丙}\quad
+  \circledtext[charshrink=0.35]{丁}
 \end{SideBySideExample}
 
 \bigskip
@@ -381,8 +409,8 @@
 
 \bigskip
 
-\begin{option}{ opt = charcolor, desc = {= \meta{字符(串)颜色}}, init=black }
-  设置字符(串)颜色。
+\begin{option}{ opt = charcolor, desc = {= \meta{文本颜色}}, init=black }
+  设置文本颜色。
 \end{option}\\
 \begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
   \centering
@@ -408,7 +436,7 @@
 \bigskip
 
 \begin{option}{ opt = charstroke, desc = {= \meta{笔画类型}}, init=无 }
-  设置字符(串)笔画类型。
+  设置文本笔画类型。
 \end{option}\\
 \begin{Description}
   \item |none|---原始笔画轮廓。
@@ -515,7 +543,7 @@ text.
   \centering
   \circledtext{8}\quad
   \circledtext{100}\quad
-  \circledtext[basechar=m]{three}
+  \circledtext[basechar=M]{three}
 \end{SideBySideExample}
 
 \bigskip
@@ -526,7 +554,7 @@ text.
 \begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
   \centering
   \circledtext{8}\qquad
-  \circledtext[charf=\Huge\sffamily]{9}
+  \circledtext[charf=\Huge]{9}
 \end{SideBySideExample}
 
 \bigskip
@@ -539,12 +567,15 @@ text.
     \item |o+|---filled circle with cross.
     \item |ox|---filled circle with diagonal cross(lowercase "x").
     \item |ox+|---filled circle with diagonal cross and cross.
-    \item |x+|---diagonal cross and cross.
-    \item |O|---filled circle(capital "O").
-    \item |O+|---filled circle with cross.
-    \item |OX|---filled circle with diagonal cross(capital "X").
-    \item |OX+|---filled circle with diagonal cross and cross.
-    \item |X+|---diagonal cross and cross.
+    \item |x+|---diagonal cross and cross(hided circle bg).
+    \item |O|---filled square(capital "O").
+    \item |O+|---filled square with cross.
+    \item |OX|---filled square with diagonal cross(capital "X").
+    \item |OX+|---filled square with diagonal cross and cross.
+    \item |X+|---diagonal cross and cross(hided square bg).
+    \item |oo|---2 concentric circles.
+    \item |Oo|---filled square with fg color and filled circle with bg color.
+    \item |OO|---2 concentric squares.
   \end{Description}
 \begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
   \centering
@@ -562,6 +593,30 @@ text.
   \circledtext[boxtype=OX ]{12}\quad
   \circledtext[boxtype=OX+]{13}\quad
   \circledtext[boxtype=X+ ]{14}
+\end{SideBySideExample}
+
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.50\linewidth,gobble=2]
+  \centering
+  \circledtextset{boxcolor=red}
+  \circledtext[boxtype=oo  ]{88}\quad
+  \circledtext[boxtype=Oo  ]{88}\quad
+  \circledtext[boxtype=OO  ]{88}\quad
+  \circledtext*[boxtype=oo ]{88}\quad
+  \circledtext*[boxtype=Oo ]{88}\quad
+  \circledtext*[boxtype=OO ]{88}
+\end{SideBySideExample}
+
+\bigskip
+
+\begin{option}{ opt = charshrink, desc = {= \meta{text shrink}}, init=0.75 }
+  Set text shrink ratio.
+\end{option}\\
+\begin{SideBySideExample}[frame=single,numbers=left,xrightmargin=.45\linewidth,gobble=2]
+  \centering
+  \circledtext[charshrink=0.75]{8}\quad
+  \circledtext[charshrink=1.00]{8}\quad
+  \circledtext[charshrink=0.50]{8}\quad
+  \circledtext[charshrink=0.35]{8}
 \end{SideBySideExample}
 
 \bigskip
